@@ -7,6 +7,8 @@ import {config as blockManipulation} from './block-manipulation'
 import {config as estimate} from './estimates'
 import {config as navigation} from './navigation'
 import {config as livePreview} from './livePreview'
+import {config as helloWorld} from './hello_world'
+import {config as filterSearch} from './filter-search'
 import {filterAsync, mapAsync} from '../common/async'
 
 export const Features = {
@@ -18,6 +20,8 @@ export const Features = {
         customCss,
         navigation,
         livePreview,
+        helloWorld,
+        filterSearch,
     ]),
 
     isActive: Settings.isActive,

@@ -1,4 +1,5 @@
 import {Feature, Settings} from '../settings'
+import {browser} from 'webextension-polyfill-ts'
 
 export const config: Feature = { // An object that describes new feature we introduce
     id: 'filter_search',  // Feature id - any unique string would do
@@ -14,21 +15,18 @@ const checkSettingsAndSetupFilterSearchToggle = () => {
 }
 checkSettingsAndSetupFilterSearchToggle()
 
+browser.runtime.onMessage.addListener(async message => {
+    if (message === 'settings-updated') {
+        checkSettingsAndSetupFilterSearchToggle()
+    }
+})
+
 const toggleFilterSearch = (active: boolean) => {
     const jsDoc = document;
     if (active) {
         jsDoc.addEventListener("click", filterSearch);
     } else {
         jsDoc.removeEventListener("click", filterSearch);
-        var allByClass = document.querySelectorAll('div.rm-reference-container > div:first-child');
-        var pageRefDiv = (<HTMLElement>allByClass[0]);
-        if(typeof pageRefDiv !== 'undefined' && pageRefDiv !== null){pageRefDiv.removeEventListener("click", pageRefClick);}
-        var newInput = (<HTMLElement>document.getElementById("fbSearchInput"));
-        if(typeof newInput !== 'undefined' && newInput !== null)
-        {
-            newInput.removeEventListener("input", newInputClick);
-            newInput.style.display = "none";
-        }
     }
 }
 
@@ -40,47 +38,80 @@ function filterSearch(evt: MouseEvent)
     if(evtTarget !== null)
     {
         if(debugMode == 1){console.log(evtTarget.className);}
-        if(evtTarget.className === 'bp3-icon bp3-icon-filter' || evtTarget.className === 'bp3-button')
+
+        if(evtTarget.className === 'bp3-button')
         {
-            //Check if filter search input box is there, otherwise need to load it (new page)
-            var tbInputTest = document.getElementById("fbSearchInput");
-
-            if(tbInputTest === null)
+            var tbInputTest = (<HTMLInputElement>document.getElementById("fbSearchInput"));
+            if(tbInputTest !== null)
             {
-                var allByClass = document.querySelectorAll('div.rm-reference-container > div:first-child');
-                var pageRefDiv = (<HTMLElement>allByClass[0]);
-
-                pageRefDiv.addEventListener("click", pageRefClick);
-                var newDiv = document.createElement('div');
-                    newDiv.id = 'filterBoxSearch';
-                    newDiv.style.cssText = 'display:flex';
-                    pageRefDiv.insertBefore(newDiv, pageRefDiv.lastElementChild)
-
-                var newInput = document.createElement('input');
-                    newInput.value = '';
-                    newInput.id = 'fbSearchInput';
-                    newInput.name = 'fbSearchInput';
-                    newInput.style.cssText = 'width:150px;display:flex;margin-left:10px';
-                    newDiv.appendChild(newInput);
-                    newInput.focus();
-
-                newInput.addEventListener("input", newInputClick);
-            }
-            else {
                 tbInputTest.focus();
+                tbInputTest.select();
             }
+        }else if(evtTarget.className === 'bp3-icon bp3-icon-filter' || evtTarget.className === 'bp3-button bp3-minimal bp3-small')
+        {
+            var waitCtr = 0;
+function waitForFilter()
+{
+    setTimeout(function(){   //  call a 500ms setTimeout when the loop is called
+                //Check if filter search input box is there, otherwise need to load it (new page)
+                var tbInputTest = (<HTMLInputElement>document.getElementById("fbSearchInput"));
+
+                if(tbInputTest === null)
+                {
+                    var allByClassTest = document.querySelectorAll('div.bp3-transition-container.bp3-popover-enter-done div.bp3-popover-content > div > div');
+                    var testFilterDiv = (<HTMLElement>allByClassTest[0]);
+                    if(typeof testFilterDiv !== 'undefined' && testFilterDiv !== null)
+                    {
+                        //console.log('found it!')
+                        //var allByClass = document.querySelectorAll('div.rm-reference-container > div:first-child');
+                        //var pageRefDiv = (<HTMLElement>allByClass[0]);
+
+                        var newDivLine = document.createElement('div');
+                            newDivLine.className = 'rm-line';
+                            testFilterDiv.prepend(newDivLine);
+
+                        //pageRefDiv.addEventListener("click", pageRefClick);
+                        var newDiv = document.createElement('div');
+                            newDiv.id = 'filterBoxSearch';
+                            newDiv.style.cssText = 'display:flex;padding:4px';
+                            testFilterDiv.prepend(newDiv);
+
+                            var newLabel = document.createElement('strong');
+                                newLabel.innerText = 'Search';
+                                newLabel.style.cssText = 'margin-right:10px';
+                                newDiv.appendChild(newLabel);
+
+                        var newInput = document.createElement('input');
+                            newInput.value = '';
+                            newInput.id = 'fbSearchInput';
+                            newInput.name = 'fbSearchInput';
+                            newInput.style.cssText = 'width:200px;display:flex';
+                            newDiv.appendChild(newInput);
+                            newInput.focus();
+
+                        newInput.addEventListener("input", newInputClick);
+                        return;
+                    }else{if(debugMode == 1){console.log('Filter box was not loaded in time!')}}
+                }
+                waitCtr++;
+                if(debugMode == 1){console.log('*** WAIT LOOP: ',waitCtr)}
+                if(waitCtr >= 12){return;}
+                waitForFilter();
+    }, 50)
+}
+waitForFilter();
         }
     }
     //console.log("document click")
 }
-
+/*
 function pageRefClick()
 {
     if(debugMode == 1){console.log('clicked');}
     var searchInput = document.getElementById("fbSearchInput");
     if(searchInput !== null){searchInput.focus();}
 }
-
+*/
 function newInputClick()
 {
     var inputTxtVal = (<HTMLInputElement>document.getElementById("fbSearchInput")).value.toString();

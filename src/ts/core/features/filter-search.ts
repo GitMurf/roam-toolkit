@@ -4,7 +4,7 @@ import {browser} from 'webextension-polyfill-ts'
 export const config: Feature = { // An object that describes new feature we introduce
     id: 'filter_search',  // Feature id - any unique string would do
     name: 'Filter Search',  // Feature name - would be displayed in the settings menu
-    warning: 'Experimental feature',
+    //warning: 'Experimental feature',
     enabledByDefault: false,
 }
 
@@ -41,77 +41,66 @@ function filterSearch(evt: MouseEvent)
 
         if(evtTarget.className === 'bp3-button')
         {
-            var tbInputTest = (<HTMLInputElement>document.getElementById("fbSearchInput"));
-            if(tbInputTest !== null)
+            var tbInputSearch = (<HTMLInputElement>document.getElementById("fbSearchInput"));
+            if(tbInputSearch !== null)
             {
-                tbInputTest.focus();
-                tbInputTest.select();
+                tbInputSearch.focus();
+                tbInputSearch.select();
             }
-        }else if(evtTarget.className === 'bp3-icon bp3-icon-filter' || evtTarget.className === 'bp3-button bp3-minimal bp3-small')
+        }
+        else if(evtTarget.className === 'bp3-icon bp3-icon-filter' || evtTarget.className === 'bp3-button bp3-minimal bp3-small')
         {
             var waitCtr = 0;
-function waitForFilter()
-{
-    setTimeout(function(){   //  call a 500ms setTimeout when the loop is called
-                //Check if filter search input box is there, otherwise need to load it (new page)
-                var tbInputTest = (<HTMLInputElement>document.getElementById("fbSearchInput"));
+            function waitForFilter()
+            {
+                setTimeout(function(){
+                    //Check if filter search input box is there, otherwise need to load it
+                    var tbInputSearch = (<HTMLInputElement>document.getElementById("fbSearchInput"));
 
-                if(tbInputTest === null)
-                {
-                    var allByClassTest = document.querySelectorAll('div.bp3-transition-container.bp3-popover-enter-done div.bp3-popover-content > div > div');
-                    var testFilterDiv = (<HTMLElement>allByClassTest[0]);
-                    if(typeof testFilterDiv !== 'undefined' && testFilterDiv !== null)
+                    if(tbInputSearch === null)
                     {
-                        //console.log('found it!')
-                        //var allByClass = document.querySelectorAll('div.rm-reference-container > div:first-child');
-                        //var pageRefDiv = (<HTMLElement>allByClass[0]);
+                        var allByClassTest = document.querySelectorAll('div.bp3-transition-container.bp3-popover-enter-done div.bp3-popover-content > div > div');
+                        var testFilterDiv = (<HTMLElement>allByClassTest[0]);
+                        if(typeof testFilterDiv !== 'undefined' && testFilterDiv !== null)
+                        {
+                            var newDivLine = document.createElement('div');
+                                newDivLine.className = 'rm-line';
+                                testFilterDiv.prepend(newDivLine);
 
-                        var newDivLine = document.createElement('div');
-                            newDivLine.className = 'rm-line';
-                            testFilterDiv.prepend(newDivLine);
-
-                        //pageRefDiv.addEventListener("click", pageRefClick);
-                        var newDiv = document.createElement('div');
-                            newDiv.id = 'filterBoxSearch';
-                            newDiv.style.cssText = 'display:flex;padding:4px';
-                            testFilterDiv.prepend(newDiv);
+                            var newDiv = document.createElement('div');
+                                newDiv.id = 'filterBoxSearch';
+                                newDiv.style.cssText = 'display:flex;padding:4px';
+                                testFilterDiv.prepend(newDiv);
 
                             var newLabel = document.createElement('strong');
                                 newLabel.innerText = 'Search';
                                 newLabel.style.cssText = 'margin-right:10px';
                                 newDiv.appendChild(newLabel);
 
-                        var newInput = document.createElement('input');
-                            newInput.value = '';
-                            newInput.id = 'fbSearchInput';
-                            newInput.name = 'fbSearchInput';
-                            newInput.style.cssText = 'width:200px;display:flex';
-                            newDiv.appendChild(newInput);
-                            newInput.focus();
+                            var newInput = document.createElement('input');
+                                newInput.value = '';
+                                newInput.id = 'fbSearchInput';
+                                newInput.name = 'fbSearchInput';
+                                newInput.style.cssText = 'width:200px;display:flex';
+                                newDiv.appendChild(newInput);
+                                newInput.focus();
 
-                        newInput.addEventListener("input", newInputClick);
-                        return;
-                    }else{if(debugMode == 1){console.log('Filter box was not loaded in time!')}}
-                }
-                waitCtr++;
-                if(debugMode == 1){console.log('*** WAIT LOOP: ',waitCtr)}
-                if(waitCtr >= 12){return;}
-                waitForFilter();
-    }, 50)
-}
-waitForFilter();
+                            newInput.addEventListener("input", newInputClick);
+                            return;
+                        }else{if(debugMode == 1){console.log('Filter box was not loaded in time!')}}
+                    }
+                    waitCtr++;
+                    if(debugMode == 1){console.log('*** WAIT LOOP: ',waitCtr)}
+                    if(waitCtr >= 12){return;}
+                    waitForFilter();
+                }, 50)
+            }
+
+            waitForFilter();
         }
     }
-    //console.log("document click")
 }
-/*
-function pageRefClick()
-{
-    if(debugMode == 1){console.log('clicked');}
-    var searchInput = document.getElementById("fbSearchInput");
-    if(searchInput !== null){searchInput.focus();}
-}
-*/
+
 function newInputClick()
 {
     var inputTxtVal = (<HTMLInputElement>document.getElementById("fbSearchInput")).value.toString();
@@ -131,7 +120,6 @@ function newInputClick()
             if(inputTxtVal !== '')
             {
                 var curElemText = (<HTMLElement>curElement).innerText.toString().toLowerCase();
-                //if(debugMode == 1){console.log(curElemText);}
                 if(curElemText.indexOf(inputTxtVal.toLowerCase()) > -1){(<HTMLElement>curElement).style.display = "inline-flex"}else{(<HTMLElement>curElement).style.display = "none"}
             }else{(<HTMLElement>curElement).style.display = "inline-flex"}
         }
